@@ -5,6 +5,8 @@ const pattern = "abin";
 const fs = require("fs");
 const path = require("path");
 
+
+//Handles the response
 function responseHandler(data, pattern) {
 	data = data.trim();
 	if (data.length == 0) {
@@ -47,6 +49,10 @@ function responseHandler(data, pattern) {
 	//});
 }
 
+
+
+// This function groups words for distance matching.
+// Maximum distance of 2 is implemented.
 function groupData(data, pattern) {
 	const arr = data.split(/\n/);
 	const pat = pattern.toLowerCase();
@@ -81,6 +87,8 @@ function groupData(data, pattern) {
 	};
 }
 
+
+//This function ranks the data based on case . 
 function resultRanker(data, pattern) {
 	/**
 	 * Ranking Algorithm explanation:
@@ -115,6 +123,11 @@ function resultRanker(data, pattern) {
 	return searchResults;
 }
 
+
+//This is the main function that processes files and finds patterns . 
+//This would work for LINUX/UNIX systems. 
+//For windows , findstr could be used.
+//Grep was very faster than fs and few other algorithms . Hence chose this.
 function patternFinder(file, pattern, done) {
 	try {
 		const spawn = require("child_process").spawn;
