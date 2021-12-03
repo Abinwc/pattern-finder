@@ -98,6 +98,8 @@ function resultRanker(data, pattern) {
 		const element = searchResults[i].trim();
 		//Finding rank value for particular element
 		let rankValueCounter = 0;
+		//TODO ; check for case using ASCII for ranking closeFriends and friends correctly.
+		//This logic works only for family.
 		for (let j = 0; j < element.length; j++) {
 			if (element.charAt(j) === trimmedPattern.charAt(j)) rankValueCounter += 2;
 			else rankValueCounter += 1;
