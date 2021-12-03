@@ -1,4 +1,6 @@
 // Using Merge Sort algorithm
+// This function receives two arrays . One of the pattern array and the second one is the array with corresponding rank values . 
+// The rank values are sorted using merge sort and at the same time the pattern array is also sorted. 
   
 function merge(arr,patterns, l, m, r)
 {
@@ -67,13 +69,9 @@ function merge(arr,patterns, l, m, r)
 }
   
 
-// l is for left index and r is
-// right index of the sub-array
-// of arr to be sorted */
-
 function mergeSort(arr,patterns,l, r){
     if(l>=r){
-        return;//returns recursively
+        return; 
     }
     var m =l+ parseInt((r-l)/2);
     mergeSort(arr,patterns,l,m);

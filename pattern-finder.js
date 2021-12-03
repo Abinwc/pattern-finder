@@ -1,23 +1,108 @@
 const sort = require("./ranking-algorithm");
+const patternCreator = require("./pattern-creator");
 const fileLocation = "./sample3.txt";
-const patternToMatch = "abin";
+const pattern = "abin";
+const fs= require('fs');
+const path = require('path');
 
-function resultRanker(err, data) {
-
-	if (err) {
-		console.log(err);
-		return;
-	}
-
-	if (data.trim().length == 0) {
+function responseHandler(data, pattern) {
+	data= data.trim();
+	if (data.length == 0) {
 		console.log(`No matching patterns found.`);
 		return;
 	}
 
-	const trimmedPattern = patternToMatch.trim();
-	const searchResults = data.trim().split(/\n/);
-	console.log("Completed processing file and found no of items:", searchResults.length);
-	console.log("Total list of patterns found :",searchResults);
+	const groupedData = groupData(data, pattern);
+
+	const rankOneList= resultRanker(groupedData.family, pattern);
+  const rankTwoList= resultRanker(groupedData.closeFriends, pattern);
+	const rankThreeList= resultRanker(groupedData.friends, pattern);
+
+
+	console.log("Ranked list for exact patterns");
+	console.log(rankOneList);
+	console.log("Ranked list for patterns with one letter mismatch");
+	console.log(rankTwoList);
+	console.log("Ranked list for patterns with two letter mismatch");
+	console.log(rankThreeList);
+	
+
+//TODO: NO TIME WRITING FILE EFFECTIVELY	
+	
+//	 fs.open('ranked-list.txt', 'r', function (err, f) {
+//      if(err) {
+//				fs.mkdir('ranked-list.txt', (err) => {
+//    if (err) {
+//        return console.error(err);
+//    }
+//    console.log('Directory created successfully!');
+//});
+//			}
+//});
+
+//fs.writeFile("ranked-list.txt", rankOneList.join("\n"), (err) => {
+//  if (err)
+//    console.log(err);
+//  else {
+//    console.log("File written successfully\n");
+//  }
+//});
+
+}
+
+function groupData(data, pattern){
+   const arr = data.split(/\n/);
+   const pat = pattern.toLowerCase();
+
+	//Array Family stores the patterns that directly matches with the original pattern.
+	const family = [];
+	//Array CloseFriends stores the patterns that is one word different from the original pattern.
+	const closeFriends = [];
+	//Array Friends stores the patterns that is two word different from the original pattern.
+	const friends = []; 
+
+	 for(let i =0; i< arr.length ; i++){
+		 const element = arr[i].toLowerCase();
+
+		 if(element == pat)
+			 family.push(arr[i]);
+		 else {
+			 const elementChars = element.split("");
+			 const patternChars = pat.split("");
+			 let diffCounter = 0;
+			 for(let i =0 ; i< elementChars.length; i++){
+				 if(elementChars[i] != patternChars[i])
+					 diffCounter++;
+			 }
+			 if(diffCounter ==1)
+				 closeFriends.push(arr[i]);
+			 else 
+			   friends.push(arr[i]);
+		 }
+		
+	 }
+
+   return {
+		 family: family,
+		 closeFriends: closeFriends,
+		 friends: friends
+	 }
+
+}
+
+
+function resultRanker(data, pattern) {
+
+/**
+ * Ranking Algorithm explanation:
+ *
+ *There are two possible cases(upper-case and lower case) for a particular letter at a position in the pattern. 
+ * That particular case for that particular letter at that position get a value. 
+ *
+ * TODO: Finish the algorithm explanation
+ */
+	const trimmedPattern = pattern.trim();
+	const searchResults = data;
 
 	const rankValue = [];
 	for (let i = 0; i < searchResults.length; i++) {
@@ -31,22 +116,33 @@ function resultRanker(err, data) {
 		rankValue.push(rankValueCounter);
 	}
 
+	/**
+	 * RankValue array and the Search Results are sent for sorting
+	 */ 
 	sort(rankValue, searchResults, 0, rankValue.length-1);
-	
-	console.log("The list of patterns based on case ranking:",searchResults);
+
+	return searchResults;
 }
 
+
+
 function patternFinder(file, pattern, done) {
+try{  
 	const spawn = require("child_process").spawn;
 	let res = "";
 
-	const child = spawn("grep", ["-io", pattern, file]);
+	const patternToMatch = patternCreator(pattern);
+
+	const child = spawn("grep", ["-ioE", patternToMatch, file]);
 	child.stdout.on("data", function (buffer) {
 		res += buffer.toString();
 	});
 	child.stdout.on("end", function () {
-		done(null, res);
+		done(res, pattern);
 	});
+}catch(e){
+	console.log(`Errored occured while searching pattern ${e.message}`);
+}
 }
 
-patternFinder(fileLocation, patternToMatch, resultRanker);
+patternFinder(fileLocation, pattern, responseHandler);
